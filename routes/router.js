@@ -1,7 +1,8 @@
 import express from "express";
-import { registerUser, loginUser } from "../controllers/authController.js";
+import { registerUser, loginUser, getUserProfile } from "../controllers/authController.js";
 import { addProduct, deleteProduct, getProductById, getProducts, updateProduct } from "../controllers/productController.js";
 import upload from "../middleware/multer.js";
+import { protect } from "../middleware/authMiddleware.js";
 // import { createOrder, getOrders } from "../controllers/orderController.js";
 
 const router = express.Router();
@@ -9,6 +10,7 @@ const router = express.Router();
 //Auth Routes
 router.post("/auth/register", registerUser);
 router.post("/auth/login", loginUser);
+router.get("/auth/profile", protect, getUserProfile);
 
 //Product Routes
 router.get("/products", getProducts);
