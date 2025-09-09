@@ -4,11 +4,6 @@ import cloudinary from "../config/cloudinary.js";
 // Add New Product
 export const addProduct = async (req, res) => {
     try {
-        const price = req.body.price ? JSON.parse(req.body.price) : {};
-        const sizes = req.body.sizes ? JSON.parse(req.body.sizes) : [];
-        const colors = req.body.colors ? JSON.parse(req.body.colors) : [];
-        const tags = req.body.tags ? JSON.parse(req.body.tags) : [];
-
         let mainImageUrl = "";
         if (req.files?.main?.[0]) {
             mainImageUrl = req.files.main[0].path;
@@ -27,15 +22,15 @@ export const addProduct = async (req, res) => {
             ageGroup: req.body.ageGroup,
             description: req.body.description,
             images: { main: mainImageUrl, side: sideImagesUrls },
-            price,
-            sizes,
-            colors,
+            price: req.body.price,
+            sizes: req.body.sizes,
+            colors: req.body.colors,
             stock: req.body.stock,
-            rating: req.body.rating || 0,
-            reviews: req.body.reviews || 0,
-            views: req.body.views || 0,
-            tags,
-            status: req.body.status || "active",
+            rating: req.body.rating,
+            reviews: req.body.reviews,
+            views: req.body.views,
+            tags: req.body.tags,
+            status: req.body.status,
         });
 
         await product.save();
@@ -75,9 +70,27 @@ export const getProductById = async (req, res) => {
 // Update Product
 export const updateProduct = async (req, res) => {
     try {
-        const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!product) return res.status(404).json({ success: false, message: "Product not found" });
-        res.status(200).json({ success: true, message: "Product updated successfully", product });
+        const { id } = req.query;
+        let updateData = { ...req.body };
+
+        if (req.file) {
+            const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+                folder: "products",
+            });
+            updateData.image = uploadResult.secure_url;
+        }
+
+        const product = await Product.findByIdAndUpdate(id, updateData, { new: true });
+
+        if (!product) {
+            return res.status(404).json({ success: false, message: "Product not found" });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Product updated successfully",
+            product,
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -86,7 +99,7 @@ export const updateProduct = async (req, res) => {
 // Delete Product
 export const deleteProduct = async (req, res) => {
     try {
-        const product = await Product.findByIdAndDelete(req.params.id);
+        const product = await Product.findByIdAndDelete(req.query.id);
         if (!product) return res.status(404).json({ success: false, message: "Product not found" });
         res.status(200).json({ success: true, message: "Product deleted successfully" });
     } catch (error) {

@@ -24,8 +24,13 @@ router.post(
     ]),
     addProduct
 );
-router.put("/products/:id", updateProduct);
-router.delete("/products/:id", deleteProduct);
+router.put("/product",
+    upload.fields([
+        { name: "main", maxCount: 1 },
+        { name: "side", maxCount: 5 },
+    ]),
+    updateProduct);
+router.delete("/product", deleteProduct);
 
 //Order Routes
 // router.get("/orders", getOrders);
