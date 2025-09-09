@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import cloudinary from "../config/cloudinary.js";
 
 // Register
 export const registerUser = async (req, res) => {
@@ -57,3 +58,42 @@ export const getUserProfile = (req, res) => {
         success: true
     });
 };
+
+//update profile
+export const updateUserProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { bio, name } = req.body;
+
+        const updateData = {};
+
+        if (name) updateData.name = name;
+        if (bio) updateData.bio = bio;
+
+        if (req.file) {
+            const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+                folder: "user_profiles",
+            });
+            updateData.profile = uploadResult.secure_url; 
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            updateData,
+            { new: true, runValidators: true }
+        ).select("-password");
+
+        if (!updatedUser) {
+            return res.status(404).json({ msg: "User not found", success: false });
+        }
+
+        res.json({
+            msg: "Profile updated successfully",
+            user: updatedUser,
+            success: true,
+        });
+    } catch (err) {
+        res.status(500).json({ msg: err.message, success: false });
+    }
+};
+

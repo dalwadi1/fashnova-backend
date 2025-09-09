@@ -1,5 +1,5 @@
 import express from "express";
-import { registerUser, loginUser, getUserProfile } from "../controllers/authController.js";
+import { registerUser, loginUser, getUserProfile, updateUserProfile } from "../controllers/authController.js";
 import { addProduct, deleteProduct, getProductById, getProducts, updateProduct } from "../controllers/productController.js";
 import upload from "../middleware/multer.js";
 import { protect } from "../middleware/authMiddleware.js";
@@ -11,6 +11,7 @@ const router = express.Router();
 router.post("/auth/register", registerUser);
 router.post("/auth/login", loginUser);
 router.get("/auth/profile", protect, getUserProfile);
+router.put("/auth/profile", protect, upload.single("profile"), updateUserProfile);
 
 //Product Routes
 router.get("/products", getProducts);
